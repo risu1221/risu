@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Drive</title>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&family=Roboto:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', 'Google Sans', sans-serif;
+      background: #f8fafd;
+      color: #1f1f1f;
+      overflow-x: hidden;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      background: #f8fafd;
+      gap: 12px;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 22px;
+      font-family: 'Google Sans', 'Product Sans', sans-serif;
+      color: #3c4043;
+      font-weight: 400;
+      text-decoration: none;
+      width: 238px;
+    }
+
+    .topbar-logo img,
+    .topbar-logo svg {
+      width: 40px;
+      height: 40px;
+    }
+
+    .search-bar {
+      flex: 1;
+      max-width: 720px;
+      display: flex;
+      align-items: center;
+      background: #e9eef6;
+      border-radius: 24px;
+      padding: 0 16px;
+      height: 48px;
+      gap: 10px;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .search-bar:focus-within {
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+    }
+
+    .search-bar input {
+      border: none;
+      background: transparent;
+      font-size: 16px;
+      outline: none;
+      width: 100%;
+      color: #1f1f1f;
+      font-family: inherit;
+    }
+
+    .search-bar input::placeholder {
+      color: #444746;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #004d40;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* ── SIDEBAR ── */
+    .layout {
+      display: flex;
+      height: calc(100vh - 64px);
+    }
+
+    .sidebar {
+      width: 256px;
+      padding: 12px 0;
+      background: #f8fafd;
+      flex-shrink: 0;
+    }
+
+    .new-btn {
+      margin: 8px 16px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 20px;
+      background: #ffffff;
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+      font-size: 14px;
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      color: #3c4043;
+      transition: box-shadow 0.2s, background 0.2s;
+    }
+
+    .new-btn:hover {
+      box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
+      background: #f8f9fa;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 16px;
+      height: 32px;
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 400;
+      transition: background 0.15s;
+      margin: 0 16px 4px 16px;
+      color: #444746;
+    }
+
+    .sidebar-item:hover {
+      background: #e8eaed;
+    }
+
+    .sidebar-item.active {
+      background: #c2e7ff;
+      color: #001d35;
+      font-weight: 500;
+    }
+
+    .sidebar-item svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    /* ── MAIN CONTENT ── */
+    .main {
+      flex: 1;
+      padding: 24px;
+      margin: 0 16px 16px 0;
+      background: #ffffff;
+      border-radius: 16px;
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 14px;
+      color: #1f1f1f;
+      margin-bottom: 16px;
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 500;
+    }
+
+    .file-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .file-card {
+      background: #f0f4f9;
+      border-radius: 12px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: background 0.2s;
+      position: relative;
+    }
+
+    .file-card:hover {
+      background: #e9eef6;
+    }
+
+    .file-card .meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      height: 48px;
+    }
+
+    .file-card .fname {
+      font-size: 14px;
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #1f1f1f;
+    }
+
+    .file-card .thumb {
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      margin: 0 8px 8px 8px;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      font-size: 64px;
+    }
+
+    .file-card .thumb svg {
+      width: 64px;
+      height: 64px;
+    }
+
+    /* ── OVERLAY ── */
+    #overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.0);
+      animation: fadeInBg 0.4s forwards;
+    }
+
+    #overlay.show {
+      display: flex;
+    }
+
+    @keyframes fadeInBg {
+      to {
+        background: rgba(0, 0, 0, 0.85);
+      }
+    }
+
+    #video-bg {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border: none;
+      z-index: 1001;
+      opacity: 0;
+      animation: fadeInVid 0.6s 0.3s forwards;
+      pointer-events: none;
+    }
+
+    @keyframes fadeInVid {
+      to {
+        opacity: 1;
+      }
+    }
+
+    #prank-card {
+      position: relative;
+      z-index: 1002;
+      text-align: center;
+      animation: popIn 0.5s 0.5s cubic-bezier(.34, 1.56, .64, 1) both;
+    }
+
+    @keyframes popIn {
+      from {
+        transform: scale(0.3) rotate(-10deg);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+
+    .prank-emoji {
+      font-size: 100px;
+      display: block;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 0 20px rgba(255, 200, 0, 0.8));
+      animation: bounce 0.6s 1s ease-in-out infinite alternate;
+    }
+
+    @keyframes bounce {
+      to {
+        transform: translateY(-12px) scale(1.08);
+      }
+    }
+
+    .prank-title {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 52px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow:
+        0 0 20px rgba(255, 80, 80, 0.9),
+        0 4px 0 rgba(0, 0, 0, 0.5);
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+
+    .prank-title .april {
+      color: #ffdd00;
+    }
+
+    .prank-title .fool {
+      color: #ff4444;
+    }
+
+    .prank-sub {
+      font-size: 22px;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 32px;
+      font-weight: 400;
+    }
+
+    .close-btn {
+      background: #fff;
+      color: #202124;
+      border: none;
+      padding: 14px 36px;
+      border-radius: 100px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .4);
+    }
+
+    .close-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, .5);
+    }
+
+    /* confetti */
+    .confetti-piece {
+      position: fixed;
+      width: 10px;
+      height: 16px;
+      border-radius: 2px;
+      z-index: 1003;
+      pointer-events: none;
+      animation: confettiFall linear forwards;
+    }
+
+    @keyframes confettiFall {
+      0% {
+        transform: translateY(-20px) rotate(0deg);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <a class="topbar-logo" href="#">
+      <!-- Google Drive SVG logo -->
+      <svg width="40" height="40" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
+        <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da" />
+        <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47" />
+        <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z"
+          fill="#ea4335" />
+        <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d" />
+        <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc" />
+        <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 27h27.45c0-1.55-.4-3.1-1.2-4.5z"
+          fill="#ffba00" />
+      </svg>
+      Drive
+    </a>
+    <div class="search-bar">
+      <svg width="20" height="20" fill="#5f6368" viewBox="0 0 24 24">
+        <path
+          d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 14 15.5l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+      </svg>
+      <input type="text" placeholder="Search in Drive" value="">
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+      <svg width="24" height="24" fill="#5f6368" viewBox="0 0 24 24">
+        <path
+          d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 002 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
+      </svg>
+      <div class="avatar">R</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <button class="new-btn">
+        <svg viewBox="0 0 36 36">
+          <path d="M16 16v14h4V20z" fill="#34A853"></path>
+          <path d="M30 16H20l-4 4h14z" fill="#4285F4"></path>
+          <path d="M6 16v4h10l4-4z" fill="#FBBC05"></path>
+          <path d="M20 16V6h-4v14z" fill="#EA4335"></path>
+          <path d="M0 0h36v36H0z" fill="none"></path>
+        </svg>
+        New
+      </button>
+      <div class="sidebar-item active">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+        </svg>
+        My Drive
+      </div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+        </svg>
+        Shared with me
+      </div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+        </svg>
+        Recent
+      </div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z" />
+        </svg>
+        Starred
+      </div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6 2v6l2 2-2 2v6l6-3 6 3v-6l-2-2 2-2V2l-6 3-6-3z" />
+        </svg>
+        Spam
+      </div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M15 16h4v2h-4zm0-8h7v2h-7zm0 4h6v2h-6zM3 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V8H3v10zm2-8h6v8H5v-8zm5-6H6L5 5H3v2h10V5h-2l-1-1z" />
+        </svg>
+        Trash
+      </div>
+      <div style="margin: 12px 16px; border-top: 1px solid #e0e0e0; padding-top: 12px;">
+        <div style="font-size:12px;color:#5f6368;margin-bottom:6px;">Storage</div>
+        <div style="background:#e0e0e0;border-radius:4px;height:4px;overflow:hidden">
+          <div style="background:#1a73e8;width:62%;height:100%;border-radius:4px"></div>
+        </div>
+        <div style="font-size:11px;color:#80868b;margin-top:4px;">9.3 GB of 15 GB used</div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="section-title">Suggested</div>
+      <div class="file-grid" id="fileGrid">
+        <!-- cards injected by JS -->
+      </div>
+      <div class="section-title">Files</div>
+      <div class="file-grid" id="fileGrid2"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ OVERLAY ═══════════════════════════ -->
+  <div id="overlay">
+    <!-- Video background -->
+    <video id="video-bg" autoplay loop playsinline></video>
+
+    <div id="prank-card">
+      <span class="prank-emoji">🤡</span>
+      <div class="prank-title">
+        <span class="april">Happy April Fool's</span><br>
+        <span style="color:#fff">Day!</span>
+      </div>
+      <div class="prank-sub"> kaisa laga?  Aur lega kabhi file 🤣</div>
+      <button class="close-btn" onclick="closeOverlay()">😅 Theek hai bhai...</button>
+    </div>
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────────
+    //  🔧 APNA YOUTUBE VIDEO ID YAHAN LIKHO
+    //  Example: youtube.com/watch?v=dQw4w9WgXcQ
+    //  Toh sirf "dQw4w9WgXcQ" paste karo neeche
+    // ─────────────────────────────────────────────
+    const YOUTUBE_VIDEO_ID = "assits/arpit.mp4"; // 👈 Yahan apna YouTube video ID daalo
+    // ─────────────────────────────────────────────
+
+    const ICONS = {
+      pdf: '<svg viewBox="0 0 24 24" width="20" height="20" fill="#ea4335"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>',
+      doc: '<svg viewBox="0 0 24 24" width="20" height="20" fill="#4285f4"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>',
+      sheet: '<svg viewBox="0 0 24 24" width="20" height="20" fill="#34a853"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>',
+      folder: '<svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>',
+      image: '<svg viewBox="0 0 24 24" width="20" height="20" fill="#ea4335"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>',
+      zip: '<svg viewBox="0 0 24 24" width="20" height="20" fill="#5f6368"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm-2 1h2v2h-2V3zm-2 2h2v2h-2V5zm2 2h2v2h-2V7zm-2 2h2v2h-2V9zm2 2h2v2h-2v-2zm-2 4h4v2h-4v-2zm-3-5V3.5L18.5 9H13z"/></svg>',
+    };
+
+    const files1 = [
+      { name: "risu editing pack", icon: ICONS.pdf, date: "Mar 28, 2025" },
+      { name: "500+ font pack", icon: ICONS.sheet, date: "Mar 25, 2025" },
+      { name: "upcoming projects", icon: ICONS.image, date: "Mar 22, 2025" },
+      { name: "gamerfleet footage", icon: ICONS.doc, date: "Mar 20, 2025" },
+    ];
+    const files2 = [
+      { name: "btw.risu editng pack", icon: ICONS.doc, date: "Feb 14, 2025" },
+      { name: "gamerfleet prx.zip", icon: ICONS.zip, date: "Apr 1, 2025", prank: true },
+      { name: "risu mega pack", icon: ICONS.pdf, date: "Jan 30, 2025" },
+      { name: "all project file", icon: ICONS.folder, date: "Jan 15, 2025" },
+      { name: "mega project file", icon: ICONS.sheet, date: "Apr 1, 2025", prank: true },
+      { name: "risu client contracr", icon: ICONS.pdf, date: "Dec 31, 2024" },
+    ];
+
+    function renderGrid(files, gridId) {
+      const grid = document.getElementById(gridId);
+      files.forEach(f => {
+        const card = document.createElement('div');
+        card.className = 'file-card';
+        card.innerHTML = `
+        <div class="meta">
+          <div style="font-size:20px;display:flex;align-items:center;">${f.icon}</div>
+          <div class="fname">${f.name}</div>
+        </div>
+        <div class="thumb"><span>${f.icon}</span></div>`;
+        card.addEventListener('click', () => {
+          if (f.prank || Math.random() < 0.5) openPrank();
+          else openPrank(); // sab pe prank 😈
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    renderGrid(files1, 'fileGrid');
+    renderGrid(files2, 'fileGrid2');
+
+    function openPrank() {
+      const overlay = document.getElementById('overlay');
+      const vid = document.getElementById('video-bg');
+
+      vid.src = "assits/arpit.mp4";
+      vid.play();
+      overlay.classList.add('show');
+      spawnConfetti();
+    }
+
+    function closeOverlay() {
+      const overlay = document.getElementById('overlay');
+      const vid = document.getElementById('video-bg');
+      overlay.classList.remove('show');
+      vid.pause();
+      vid.currentTime = 0;
+    }
+
+    function spawnConfetti() {
+      const colors = ['#ff4444', '#ffdd00', '#44ff88', '#4488ff', '#ff44ff', '#ff9944'];
+      for (let i = 0; i < 80; i++) {
+        setTimeout(() => {
+          const c = document.createElement('div');
+          c.className = 'confetti-piece';
+          c.style.cssText = `
+          left: ${Math.random() * 100}vw;
+          top: -20px;
+          background: ${colors[Math.floor(Math.random() * colors.length)]};
+          animation-duration: ${1.5 + Math.random() * 2}s;
+          animation-delay: ${Math.random() * 0.5}s;
+          transform: rotate(${Math.random() * 360}deg);
+          width: ${6 + Math.random() * 10}px;
+          height: ${10 + Math.random() * 16}px;
+        `;
+          document.body.appendChild(c);
+          c.addEventListener('animationend', () => c.remove());
+        }, i * 30);
+      }
+    }
+  </script>
+</body>
+
+</html>
